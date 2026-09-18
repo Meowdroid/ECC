@@ -39,6 +39,7 @@ function main() {
       assert.ok(packageJson.files.includes(".opencode/"))
       assert.strictEqual(packageJson.main, ".opencode/dist/index.js")
       assert.strictEqual(packageJson.exports["."].import, "./.opencode/dist/index.js")
+      assert.strictEqual(packageJson.dependencies["@opencode/plugin"], "2.0.2")
     }],
     ["installed OpenCode TypeScript sources do not reference sibling .js files", () => {
       const sourceRoot = path.join(repoRoot, ".opencode")

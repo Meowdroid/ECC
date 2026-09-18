@@ -491,7 +491,8 @@
     "ajv": "8.20.0",
     "js-yaml": "4.3.2",
     "sql.js": "1.14.2",
-    "@opencode-ai/plugin": "1.18.25"
+    "@opencode-ai/plugin": "1.18.25",
+    "@opencode/plugin": "2.0.2"
   },
   "pi": {
     "extensions": [

@@ -1,3 +1,4 @@
+import { Plugin } from "@opencode/plugin"
 import * as fs from "fs"
 import * as path from "path"
 import changedFilesTool from "../tools/changed-files.ts"
@@ -5,8 +6,6 @@ import dependencyAnalyzerTool from "../tools/dependency-analyzer.ts"
 import * as changedFilesStore from "./lib/changed-files-store.ts"
 
 type Registration = { dispose(): Promise<void> | void }
-type V2Context = any
-
 type HookProfile = "minimal" | "standard" | "strict"
 
 function normalizeProfile(value: string | undefined): HookProfile {
@@ -38,10 +37,10 @@ function oldToolExecutor(definition: any, directory: string) {
  * { id, setup } definition and requires hooks/tools to be registered through
  * the context domains.
  */
-const ECCV2Plugin = {
+const ECCV2Plugin = Plugin.define({
   id: "ecc-universal",
 
-  async setup(ctx: V2Context) {
+  async setup(ctx) {
     const registrations: Registration[] = []
     const directory = ctx.location?.directory ?? process.cwd()
     const profile = normalizeProfile(process.env.ECC_HOOK_PROFILE)
@@ -204,6 +203,6 @@ const ECCV2Plugin = {
       changedFilesStore.clearChanges()
     }
   },
-}
+})
 
 export default ECCV2Plugin
