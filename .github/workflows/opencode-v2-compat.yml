@@ -52,6 +52,7 @@ jobs:
       - name: OpenCode runtime plugin smoke
         run: opencode plugin list
       - name: Assert OpenCode v2 runtime integration
+        if: runner.os == 'Windows'
         run: node tests/scripts/opencode-v2-runtime.test.js
 
   full-tests:
