@@ -47,14 +47,17 @@ async function main() {
       const password = (serverLog.match(/server password\s+(\S+)/) || [])[1]
       if (!password) continue
       const auth = Buffer.from("opencode:" + password).toString("base64")
-      const r = spawnSync("opencode", ["api", "--server", "http://127.0.0.1:" + port, "--header", "Authorization:Basic " + auth, "GET", "/experimental/tool/ids"], {
-        encoding: "utf8",
-        shell: process.platform === "win32",
-      })
-      last = (r.stdout || "") + (r.stderr || "")
-      if (r.status === 0 && last.includes("changed-files")) {
-        tools = last
-        break
+      try {
+        const response = await fetch("http://127.0.0.1:" + port + "/experimental/tool/ids", {
+          headers: { Authorization: "Basic " + auth },
+        })
+        last = await response.text()
+        if (response.ok && last.includes("changed-files")) {
+          tools = last
+          break
+        }
+      } catch (error) {
+        last = String(error)
       }
       if (server.exitCode !== null) break
     }
