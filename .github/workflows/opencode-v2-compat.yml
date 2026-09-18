@@ -1,0 +1,76 @@
+name: OpenCode v2 compatibility
+
+on:
+  push:
+    branches:
+      - fix/opencode-v2-plugin-compat
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  opencode-compat:
+    name: OpenCode compatibility
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [20, 22]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Build OpenCode adapter
+        run: npm run build:opencode
+      - name: OpenCode adapter regression tests
+        run: node tests/scripts/build-opencode.test.js
+      - name: Validate agents
+        run: node scripts/ci/validate-agents.js
+      - name: Validate commands
+        run: node scripts/ci/validate-commands.js
+      - name: Validate install manifests
+        run: node scripts/ci/validate-install-manifests.js
+      - name: Package smoke test
+        run: npm pack --dry-run --json
+      - name: Install OpenCode v2 CLI
+        run: npm install --global @opencode/cli@2.0.2
+      - name: Install ECC into isolated runner home
+        run: node scripts/install-apply.js --target opencode --profile full --enable-hooks
+      - name: OpenCode runtime config smoke
+        run: opencode debug config
+      - name: OpenCode runtime agents smoke
+        run: opencode debug agents
+      - name: OpenCode runtime plugin smoke
+        run: opencode plugin list
+      - name: Assert OpenCode v2 runtime integration
+        if: runner.os == 'Windows'
+        run: node tests/scripts/opencode-v2-runtime-smoke.js
+
+  full-tests:
+    name: Full ECC tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Build OpenCode adapter
+        run: npm run build:opencode
+      - name: Full test suite
+        run: npm test

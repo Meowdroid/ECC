@@ -1,12 +1,14 @@
 /**
- * ECC Plugins for OpenCode
+ * ECC OpenCode plugin entrypoint.
  *
- * This module exports all ECC plugins for OpenCode integration.
- * Plugins provide hook-based automation that mirrors Claude Code's hook system
- * while taking advantage of OpenCode's more sophisticated 20+ event types.
+ * OpenCode v2 auto-discovers this file from the global/project plugins directory.
+ * Keep support modules outside plugins/ so they are not auto-loaded as separate
+ * plugin implementations.
  */
+import ECCHooksPlugin from "../plugin-support/ecc-hooks.ts"
+import ECCV2Plugin from "../plugin-support/ecc-v2.ts"
 
-export { ECCHooksPlugin, default } from "./ecc-hooks.js"
-
-// Re-export for named imports
-export * from "./ecc-hooks.js"
+export default {
+  ...ECCV2Plugin,
+  server: ECCHooksPlugin,
+}

@@ -1,5 +1,5 @@
 import { tool, type ToolDefinition } from "@opencode-ai/plugin/tool"
-import type { ChangeType, TreeNode } from "../plugins/lib/changed-files-store.js"
+import type { ChangeType, TreeNode } from "../plugin-support/lib/changed-files-store.ts"
 
 const INDICATORS: Record<ChangeType, string> = {
   added: "+",
@@ -21,23 +21,23 @@ function renderTree(nodes: TreeNode[], indent: string): string {
 }
 
 // Loaded lazily (instead of via a top-level import) so that a missing or
-// partially-installed `~/.opencode/plugins` directory only breaks this one
+// partially-installed `~/.config/opencode/plugin-support` directory only breaks this one
 // tool when it's actually invoked, rather than throwing during module
 // evaluation. `tools/index.ts` re-exports every tool from a single barrel
 // file, so a static import failure here previously took down the entire
 // tools module -- and with it, the whole OpenCode session -- on the very
 // first tool-loading pass (see #2530).
-type ChangedFilesStore = typeof import("../plugins/lib/changed-files-store.js")
+type ChangedFilesStore = typeof import("../plugin-support/lib/changed-files-store.ts")
 let changedFilesStorePromise: Promise<ChangedFilesStore> | undefined
 
 async function loadChangedFilesStore(): Promise<ChangedFilesStore> {
   if (!changedFilesStorePromise) {
-    changedFilesStorePromise = import("../plugins/lib/changed-files-store.js").catch(() => {
+    changedFilesStorePromise = import("../plugin-support/lib/changed-files-store.ts").catch(() => {
       changedFilesStorePromise = undefined
       throw new Error(
         "changed-files tool: could not load the changed-files store. " +
-          "This usually means the ~/.opencode/plugins directory is missing or incomplete " +
-          "(an interrupted or partial ECC install can leave tools/ populated without plugins/). " +
+          "This usually means the ~/.config/opencode/plugin-support directory is missing or incomplete " +
+          "(an interrupted or partial ECC install can leave tools/ populated without plugin-support/). " +
           "Run `node scripts/repair.js --target opencode` (or `ecc repair --target opencode`) " +
           "from the ECC repo to restore the missing files."
       )

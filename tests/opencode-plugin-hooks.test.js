@@ -31,7 +31,7 @@ async function loadPlugin() {
   })
   assert.strictEqual(buildResult.status, 0, buildResult.stderr || buildResult.stdout)
   const pluginUrl = pathToFileURL(
-    path.join(repoRoot, ".opencode", "dist", "plugins", "ecc-hooks.js")
+    path.join(repoRoot, ".opencode", "dist", "plugin-support", "ecc-hooks.js")
   ).href
   return import(pluginUrl)
 }
@@ -85,10 +85,10 @@ async function main() {
   const { ECCHooksPlugin } = await loadPlugin()
   const tests = [
     [
-      "plugin initializes and hooks stay usable when plugins/lib is missing",
+      "plugin initializes and hooks stay usable when plugin-support/lib is missing",
       async () => withTempProject([], async (projectDir) => {
         const repoRoot = path.join(__dirname, "..")
-        const libDir = path.join(repoRoot, ".opencode", "dist", "plugins", "lib")
+        const libDir = path.join(repoRoot, ".opencode", "dist", "plugin-support", "lib")
         const backupDir = path.join(
           repoRoot,
           ".opencode",
@@ -114,7 +114,7 @@ async function main() {
           assert.strictEqual(
             disabledWarnings.length,
             1,
-            "Expected exactly one warning when plugins/lib/changed-files-store.js cannot be loaded"
+            "Expected exactly one warning when plugin-support/lib/changed-files-store.js cannot be loaded"
           )
 
           // Every hook that touches the store must remain callable and must not throw.
@@ -138,11 +138,11 @@ async function main() {
           !client.logs.some(
             (entry) => entry.level === "warn" && entry.message.includes("changed-files tracking disabled")
           ),
-          "Did not expect a disabled warning when plugins/lib is present"
+          "Did not expect a disabled warning when plugin-support/lib is present"
         )
 
         const storeUrl = pathToFileURL(
-          path.join(__dirname, "..", ".opencode", "dist", "plugins", "lib", "changed-files-store.js")
+          path.join(__dirname, "..", ".opencode", "dist", "plugin-support", "lib", "changed-files-store.js")
         ).href
         const store = await import(storeUrl)
 

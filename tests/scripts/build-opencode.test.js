@@ -37,6 +37,30 @@ function main() {
       assert.strictEqual(packageJson.scripts["build:opencode"], "node scripts/build-opencode.js")
       assert.strictEqual(packageJson.scripts.prepack, "npm run build:opencode")
       assert.ok(packageJson.files.includes(".opencode/"))
+      assert.strictEqual(packageJson.main, ".opencode/dist/index.js")
+      assert.strictEqual(packageJson.exports["."].import, "./.opencode/dist/index.js")
+      assert.strictEqual(packageJson.dependencies["@opencode/plugin"], "2.0.2")
+      assert.strictEqual(packageJson.dependencies["@opencode-ai/plugin"], "1.18.31")
+    }],
+    ["installed OpenCode TypeScript sources do not reference sibling .js files", () => {
+      const sourceRoot = path.join(repoRoot, ".opencode")
+      const offenders = []
+      const visit = (dir) => {
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+          const full = path.join(dir, entry.name)
+          if (entry.isDirectory()) {
+            if (entry.name !== "dist" && entry.name !== "node_modules") visit(full)
+            continue
+          }
+          if (!entry.name.endsWith(".ts")) continue
+          const source = fs.readFileSync(full, "utf8")
+          if (new RegExp(String.raw`from\\s+["\'][.]{1,2}/[^"\']+\\.js["\']|import\\(["\'][.]{1,2}/[^"\']+\\.js["\']\\)`).test(source)) {
+            offenders.push(path.relative(repoRoot, full))
+          }
+        }
+      }
+      visit(sourceRoot)
+      assert.deepStrictEqual(offenders, [], "relative .js imports break in-place TypeScript installs")
     }],
     ["build script generates .opencode/dist", () => {
       const result = spawnSync("node", [buildScript], {
@@ -45,8 +69,22 @@ function main() {
       })
       assert.strictEqual(result.status, 0, result.stderr)
       assert.ok(fs.existsSync(distEntry), ".opencode/dist/index.js should exist after build")
+      const emittedPluginIndex = fs.readFileSync(
+        path.join(repoRoot, ".opencode", "dist", "plugins", "index.js"),
+        "utf8"
+      )
+      const emittedToolIndex = fs.readFileSync(
+        path.join(repoRoot, ".opencode", "dist", "tools", "index.js"),
+        "utf8"
+      )
+      assert.match(emittedPluginIndex, /\.\.\/plugin-support\/ecc-hooks\.js/)
+      assert.match(emittedPluginIndex, /\.\.\/plugin-support\/ecc-v2\.js/)
+      assert.match(emittedToolIndex, /\.\/run-tests\.js/)
+      assert.doesNotMatch(emittedPluginIndex, /plugin-support\/ecc-hooks\.ts/)
+      assert.doesNotMatch(emittedPluginIndex, /plugin-support\/ecc-v2\.ts/)
+      assert.doesNotMatch(emittedToolIndex, /\.\/run-tests\.ts/)
     }],
-    ["built OpenCode entry exports only the plugin function", () => {
+    ["built OpenCode entry exposes v2 setup and v1 server adapters", () => {
       const check = `
         const assert = require("assert")
         const { pathToFileURL } = require("url")
@@ -60,10 +98,54 @@ function main() {
             process.exit(1)
           }
           assert.deepStrictEqual(Object.keys(mod).sort(), ["default"])
-          assert.strictEqual(typeof mod.default, "function")
+          assert.ok(mod.default && typeof mod.default === "object")
+          assert.strictEqual(mod.default.id, "ecc-universal")
+          assert.strictEqual(typeof mod.default.setup, "function")
+          assert.strictEqual(typeof mod.default.server, "function")
+
+          const registered = { toolHooks: [], shellHooks: [], permissionHooks: [], sessionHooks: [], tools: [] }
+          const registration = () => ({ dispose: async () => {} })
+          const cleanup = await mod.default.setup({
+            location: { directory: process.cwd() },
+            tool: {
+              hook: async (name, callback) => {
+                registered.toolHooks.push(name)
+                return registration()
+              },
+              transform: async (callback) => {
+                callback({ add: (definition) => registered.tools.push(definition.name) })
+                return registration()
+              },
+            },
+            shell: {
+              hook: async (name, callback) => {
+                registered.shellHooks.push(name)
+                return registration()
+              },
+            },
+            permission: {
+              hook: async (name, callback) => {
+                registered.permissionHooks.push(name)
+                return registration()
+              },
+            },
+            session: {
+              hook: async (name, callback) => {
+                registered.sessionHooks.push(name)
+                return registration()
+              },
+            },
+          })
+          assert.deepStrictEqual(registered.toolHooks.sort(), ["execute.after", "execute.before"])
+          assert.deepStrictEqual(registered.shellHooks, ["create.before"])
+          assert.deepStrictEqual(registered.permissionHooks, ["evaluate"])
+          assert.deepStrictEqual(registered.sessionHooks, ["compaction"])
+          assert.deepStrictEqual(registered.tools.sort(), ["changed-files", "dependency-analyzer"])
+          assert.strictEqual(typeof cleanup, "function")
+          await cleanup()
 
           let shellCalls = 0
-          const plugin = await mod.default({
+          const plugin = await mod.default.server({
             client: { app: { log: () => {} } },
             $: async () => {
               shellCalls += 1
@@ -72,8 +154,8 @@ function main() {
             directory: process.cwd(),
             worktree: process.cwd(),
           })
-          assert.strictEqual(shellCalls, 0, "$ must not be called during plugin init")
-          assert.ok(plugin && typeof plugin === "object", "default export must return a plugin record")
+          assert.strictEqual(shellCalls, 0, "$ must not be called during v1 plugin init")
+          assert.ok(plugin && typeof plugin === "object", "v1 server adapter must return a plugin record")
           const expectedHooks = [
             "file.edited",
             "tool.execute.after",
@@ -111,6 +193,25 @@ function main() {
         })
       `
       const result = spawnSync(process.execPath, ["-e", check, distEntry], {
+        cwd: repoRoot,
+        encoding: "utf8",
+      })
+      assert.strictEqual(result.status, 0, result.stderr)
+    }],
+    ["root package name resolves to the compiled OpenCode plugin", () => {
+      const check = `
+        import("ecc-universal")
+          .then((mod) => {
+            if (!mod.default || mod.default.id !== "ecc-universal" || typeof mod.default.setup !== "function") {
+              process.exit(2)
+            }
+          })
+          .catch((error) => {
+            console.error(error)
+            process.exit(1)
+          })
+      `
+      const result = spawnSync(process.execPath, ["-e", check], {
         cwd: repoRoot,
         encoding: "utf8",
       })

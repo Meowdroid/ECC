@@ -97,6 +97,13 @@ const tests = [
     assert.deepStrictEqual(result.annotations, []);
     assert.ok(result.logs.some(line => /Passed:\s+3\s/.test(line)));
   }],
+  ['legacy Results summaries preserve successful totals', () => {
+    const result = run({ status: 0, stdout: '=== Results: 5 passed, 0 failed ===' });
+    assert.strictEqual(result.status, 0);
+    assert.deepStrictEqual(result.annotations, []);
+    assert.ok(result.logs.some(line => /Total Tests:\s+5\s/.test(line)));
+    assert.ok(result.logs.some(line => /Passed:\s+5\s/.test(line)));
+  }],
   ['local failures retain console diagnostics without workflow annotations', () => {
     const result = run({ status: 1, stderr: 'Error: local failure' }, 'sample.test.js', false);
     assert.strictEqual(result.status, 1);
