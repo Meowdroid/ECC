@@ -46,7 +46,8 @@ async function main() {
       await sleep(1000)
       const password = (serverLog.match(/server password\s+(\S+)/) || [])[1]
       if (!password) continue
-      const r = spawnSync("opencode", ["api", "--server", "http://127.0.0.1:" + port, "--username", "opencode", "--password", password, "GET", "/experimental/tool/ids"], {
+      const auth = Buffer.from("opencode:" + password).toString("base64")
+      const r = spawnSync("opencode", ["api", "--server", "http://127.0.0.1:" + port, "--header", "Authorization:Basic " + auth, "GET", "/experimental/tool/ids"], {
         encoding: "utf8",
         shell: process.platform === "win32",
       })
