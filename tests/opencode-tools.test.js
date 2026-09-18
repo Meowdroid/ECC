@@ -237,10 +237,10 @@ async function main() {
   // Test changed-files tool
   if (tools.changedfiles) {
     tests.push([
-      "changed-files: reports an actionable, scrubbed error when plugins/lib is missing",
+      "changed-files: reports an actionable, scrubbed error when plugin-support/lib is missing",
       async () => withTempProject([], async (projectDir) => {
         const repoRoot = path.join(__dirname, "..")
-        const libDir = path.join(repoRoot, ".opencode", "dist", "plugins", "lib")
+        const libDir = path.join(repoRoot, ".opencode", "dist", "plugin-support", "lib")
         const backupDir = path.join(
           repoRoot,
           ".opencode",
@@ -277,11 +277,11 @@ async function main() {
     ])
 
     tests.push([
-      "changed-files: renders tracked changes once plugins/lib is present",
+      "changed-files: renders tracked changes once plugin-support/lib is present",
       async () => withTempProject([], async (projectDir) => {
         const repoRoot = path.join(__dirname, "..")
         const storeUrl = pathToFileURL(
-          path.join(repoRoot, ".opencode", "dist", "plugins", "lib", "changed-files-store.js")
+          path.join(repoRoot, ".opencode", "dist", "plugin-support", "lib", "changed-files-store.js")
         ).href
         const store = await import(storeUrl)
         store.initStore(projectDir)

@@ -17,59 +17,635 @@
     "skills/strategic-compact/SKILL.md",
     "skills/eval-harness/SKILL.md"
   ],
-  "skills": {
-    "paths": [
-      "../skills"
-    ]
+  "skills": [
+    "../skills"
+  ],
+  "agents": {
+    "build": {
+      "description": "Primary coding agent for development work",
+      "mode": "primary",
+      "permissions": [
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "changed-files",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "planner": {
+      "description": "Expert planning specialist for complex features and refactoring. Use for implementation planning, architectural changes, or complex refactoring.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/planner.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "architect": {
+      "description": "Software architecture specialist for system design, scalability, and technical decision-making.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/architect.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "code-reviewer": {
+      "description": "Expert code review specialist. Reviews code for quality, security, and maintainability. Use immediately after writing or modifying code.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/code-reviewer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "security-reviewer": {
+      "description": "Security vulnerability detection and remediation specialist. Use after writing code that handles user input, authentication, API endpoints, or sensitive data.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/security-reviewer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "tdd-guide": {
+      "description": "Test-Driven Development specialist enforcing write-tests-first methodology. Use when writing new features, fixing bugs, or refactoring code. Ensures 80%+ test coverage.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/tdd-guide.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "build-error-resolver": {
+      "description": "Build and TypeScript error resolution specialist. Use when build fails or type errors occur. Fixes build/type errors only with minimal diffs.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/build-error-resolver.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "e2e-runner": {
+      "description": "End-to-end testing specialist using Playwright. Generates, maintains, and runs E2E tests for critical user flows.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/e2e-runner.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "doc-updater": {
+      "description": "Documentation and codemap specialist. Use for updating codemaps and documentation.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/doc-updater.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "refactor-cleaner": {
+      "description": "Dead code cleanup and consolidation specialist. Use for removing unused code, duplicates, and refactoring.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/refactor-cleaner.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "go-reviewer": {
+      "description": "Expert Go code reviewer specializing in idiomatic Go, concurrency patterns, error handling, and performance.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/go-reviewer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "go-build-resolver": {
+      "description": "Go build, vet, and compilation error resolution specialist. Fixes Go build errors with minimal changes.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/go-build-resolver.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "database-reviewer": {
+      "description": "PostgreSQL database specialist for query optimization, schema design, security, and performance. Incorporates Supabase best practices.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/database-reviewer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "cpp-reviewer": {
+      "description": "Expert C++ code reviewer specializing in memory safety, modern C++ idioms, concurrency, and performance. Use for all C++ code changes.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/cpp-reviewer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "cpp-build-resolver": {
+      "description": "C++ build, CMake, and compilation error resolution specialist. Fixes build errors, linker issues, and template errors with minimal changes.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/cpp-build-resolver.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "docs-lookup": {
+      "description": "Documentation specialist using Context7 MCP to fetch current library and API documentation with code examples.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/docs-lookup.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "harness-optimizer": {
+      "description": "Analyze and improve the local agent harness configuration for reliability, cost, and throughput.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/harness-optimizer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "java-reviewer": {
+      "description": "Expert Java and Spring Boot code reviewer specializing in layered architecture, JPA patterns, security, and concurrency.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/java-reviewer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "java-build-resolver": {
+      "description": "Java/Maven/Gradle build, compilation, and dependency error resolution specialist. Fixes build errors with minimal changes.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/java-build-resolver.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "kotlin-reviewer": {
+      "description": "Kotlin and Android/KMP code reviewer. Reviews Kotlin code for idiomatic patterns, coroutine safety, Compose best practices.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/kotlin-reviewer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "kotlin-build-resolver": {
+      "description": "Kotlin/Gradle build, compilation, and dependency error resolution specialist. Fixes Kotlin build errors with minimal changes.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/kotlin-build-resolver.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "loop-operator": {
+      "description": "Operate autonomous agent loops, monitor progress, and intervene safely when loops stall.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/loop-operator.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "php-reviewer": {
+      "description": "Expert PHP code reviewer specializing in PSR-12 compliance, PHP type system, Eloquent ORM patterns, security, and performance.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/php-reviewer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "python-reviewer": {
+      "description": "Expert Python code reviewer specializing in PEP 8 compliance, Pythonic idioms, type hints, security, and performance.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/python-reviewer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "rust-reviewer": {
+      "description": "Expert Rust code reviewer specializing in idiomatic Rust, ownership, lifetimes, concurrency, and performance.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/rust-reviewer.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
+    },
+    "rust-build-resolver": {
+      "description": "Rust build, Cargo, and compilation error resolution specialist. Fixes Rust build errors with minimal changes.",
+      "mode": "subagent",
+      "system": "{file:prompts/agents/rust-build-resolver.txt}",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    }
   },
-  "command": {
+  "commands": {
     "plan": {
       "description": "Create a detailed implementation plan for complex features",
       "template": "{file:commands/plan.md}\n\n$ARGUMENTS",
       "agent": "planner",
-      "subtask": true
+      "subagent": true
     },
     "tdd": {
       "description": "Enforce TDD workflow with 80%+ test coverage",
       "template": "{file:commands/tdd.md}\n\n$ARGUMENTS",
       "agent": "tdd-guide",
-      "subtask": true
+      "subagent": true
     },
     "code-review": {
       "description": "Review code for quality, security, and maintainability",
       "template": "{file:commands/code-review.md}\n\n$ARGUMENTS",
       "agent": "code-reviewer",
-      "subtask": true
+      "subagent": true
     },
     "security": {
       "description": "Run comprehensive security review",
       "template": "{file:commands/security.md}\n\n$ARGUMENTS",
       "agent": "security-reviewer",
-      "subtask": true
+      "subagent": true
     },
     "build-fix": {
       "description": "Fix build and TypeScript errors with minimal changes",
       "template": "{file:commands/build-fix.md}\n\n$ARGUMENTS",
       "agent": "build-error-resolver",
-      "subtask": true
+      "subagent": true
     },
     "e2e": {
       "description": "Generate and run E2E tests with Playwright",
       "template": "{file:commands/e2e.md}\n\n$ARGUMENTS",
       "agent": "e2e-runner",
-      "subtask": true
+      "subagent": true
     },
     "refactor-clean": {
       "description": "Remove dead code and consolidate duplicates",
       "template": "{file:commands/refactor-clean.md}\n\n$ARGUMENTS",
       "agent": "refactor-cleaner",
-      "subtask": true
+      "subagent": true
     },
     "orchestrate": {
       "description": "Orchestrate multiple agents for complex tasks",
       "template": "{file:commands/orchestrate.md}\n\n$ARGUMENTS",
       "agent": "planner",
-      "subtask": true
+      "subagent": true
     },
     "learn": {
       "description": "Extract patterns and learnings from session",
@@ -91,19 +667,19 @@
       "description": "Update documentation",
       "template": "{file:commands/update-docs.md}\n\n$ARGUMENTS",
       "agent": "doc-updater",
-      "subtask": true
+      "subagent": true
     },
     "update-codemaps": {
       "description": "Update codemaps",
       "template": "{file:commands/update-codemaps.md}\n\n$ARGUMENTS",
       "agent": "doc-updater",
-      "subtask": true
+      "subagent": true
     },
     "test-coverage": {
       "description": "Analyze test coverage",
       "template": "{file:commands/test-coverage.md}\n\n$ARGUMENTS",
       "agent": "tdd-guide",
-      "subtask": true
+      "subagent": true
     },
     "setup-pm": {
       "description": "Configure package manager",
@@ -113,19 +689,19 @@
       "description": "Go code review",
       "template": "{file:commands/go-review.md}\n\n$ARGUMENTS",
       "agent": "go-reviewer",
-      "subtask": true
+      "subagent": true
     },
     "go-test": {
       "description": "Go TDD workflow",
       "template": "{file:commands/go-test.md}\n\n$ARGUMENTS",
       "agent": "tdd-guide",
-      "subtask": true
+      "subagent": true
     },
     "go-build": {
       "description": "Fix Go build errors",
       "template": "{file:commands/go-build.md}\n\n$ARGUMENTS",
       "agent": "go-build-resolver",
-      "subtask": true
+      "subagent": true
     },
     "skill-create": {
       "description": "Generate skills from git history",
@@ -156,708 +732,11 @@
       "template": "{file:commands/projects.md}\n\n$ARGUMENTS"
     }
   },
-  "permission": {
-    "mcp_*": "ask"
-  },
-  "plugins": [
-    "./plugins"
-  ],
-  "agents": {
-    "build": {
-      "description": "Primary coding agent for development work",
-      "mode": "primary",
-      "permissions": [
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "changed-files",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "planner": {
-      "description": "Expert planning specialist for complex features and refactoring. Use for implementation planning, architectural changes, or complex refactoring.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/planner.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "architect": {
-      "description": "Software architecture specialist for system design, scalability, and technical decision-making.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/architect.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "code-reviewer": {
-      "description": "Expert code review specialist. Reviews code for quality, security, and maintainability. Use immediately after writing or modifying code.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/code-reviewer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "security-reviewer": {
-      "description": "Security vulnerability detection and remediation specialist. Use after writing code that handles user input, authentication, API endpoints, or sensitive data.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/security-reviewer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "tdd-guide": {
-      "description": "Test-Driven Development specialist enforcing write-tests-first methodology. Use when writing new features, fixing bugs, or refactoring code. Ensures 80%+ test coverage.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/tdd-guide.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "build-error-resolver": {
-      "description": "Build and TypeScript error resolution specialist. Use when build fails or type errors occur. Fixes build/type errors only with minimal diffs.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/build-error-resolver.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "e2e-runner": {
-      "description": "End-to-end testing specialist using Playwright. Generates, maintains, and runs E2E tests for critical user flows.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/e2e-runner.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "doc-updater": {
-      "description": "Documentation and codemap specialist. Use for updating codemaps and documentation.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/doc-updater.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "refactor-cleaner": {
-      "description": "Dead code cleanup and consolidation specialist. Use for removing unused code, duplicates, and refactoring.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/refactor-cleaner.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "go-reviewer": {
-      "description": "Expert Go code reviewer specializing in idiomatic Go, concurrency patterns, error handling, and performance.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/go-reviewer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "go-build-resolver": {
-      "description": "Go build, vet, and compilation error resolution specialist. Fixes Go build errors with minimal changes.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/go-build-resolver.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "database-reviewer": {
-      "description": "PostgreSQL database specialist for query optimization, schema design, security, and performance. Incorporates Supabase best practices.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/database-reviewer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "cpp-reviewer": {
-      "description": "Expert C++ code reviewer specializing in memory safety, modern C++ idioms, concurrency, and performance. Use for all C++ code changes.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/cpp-reviewer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "cpp-build-resolver": {
-      "description": "C++ build, CMake, and compilation error resolution specialist. Fixes build errors, linker issues, and template errors with minimal changes.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/cpp-build-resolver.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "docs-lookup": {
-      "description": "Documentation specialist using Context7 MCP to fetch current library and API documentation with code examples.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/docs-lookup.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "harness-optimizer": {
-      "description": "Analyze and improve the local agent harness configuration for reliability, cost, and throughput.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/harness-optimizer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "java-reviewer": {
-      "description": "Expert Java and Spring Boot code reviewer specializing in layered architecture, JPA patterns, security, and concurrency.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/java-reviewer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "java-build-resolver": {
-      "description": "Java/Maven/Gradle build, compilation, and dependency error resolution specialist. Fixes build errors with minimal changes.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/java-build-resolver.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "kotlin-reviewer": {
-      "description": "Kotlin and Android/KMP code reviewer. Reviews Kotlin code for idiomatic patterns, coroutine safety, Compose best practices.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/kotlin-reviewer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "kotlin-build-resolver": {
-      "description": "Kotlin/Gradle build, compilation, and dependency error resolution specialist. Fixes Kotlin build errors with minimal changes.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/kotlin-build-resolver.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "loop-operator": {
-      "description": "Operate autonomous agent loops, monitor progress, and intervene safely when loops stall.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/loop-operator.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-    },
-    "php-reviewer": {
-      "description": "Expert PHP code reviewer specializing in PSR-12 compliance, PHP type system, Eloquent ORM patterns, security, and performance.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/php-reviewer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "python-reviewer": {
-      "description": "Expert Python code reviewer specializing in PEP 8 compliance, Pythonic idioms, type hints, security, and performance.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/python-reviewer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "rust-reviewer": {
-      "description": "Expert Rust code reviewer specializing in idiomatic Rust, ownership, lifetimes, concurrency, and performance.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/rust-reviewer.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "rust-build-resolver": {
-      "description": "Rust build, Cargo, and compilation error resolution specialist. Fixes Rust build errors with minimal changes.",
-      "mode": "subagent",
-      "system": "{file:prompts/agents/rust-build-resolver.txt}",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "write",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "bash",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
+  "permissions": [
+    {
+      "action": "mcp_*",
+      "resource": "*",
+      "effect": "ask"
     }
-  }
+  ]
 }

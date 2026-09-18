@@ -1,14 +1,7 @@
 /**
- * ECC OpenCode plugin entrypoint.
+ * Published ECC OpenCode plugin entrypoint.
  *
- * OpenCode v2 requires a default { id, setup } definition.
- * OpenCode v1 >= 1.18.29 accepts the same object with a server() adapter.
- * Keep this module default-only because older v1 loaders iterate exports.
+ * Re-export the same dual v2/v1 definition used by local auto-discovery so the
+ * package and installed config cannot drift onto different plugin implementations.
  */
-import ECCHooksPlugin from "./plugins/ecc-hooks.ts"
-import ECCV2Plugin from "./plugins/ecc-v2.ts"
-
-export default {
-  ...ECCV2Plugin,
-  server: ECCHooksPlugin,
-}
+export { default } from "./plugins/index.ts"

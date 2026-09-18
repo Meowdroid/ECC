@@ -138,6 +138,38 @@ if (
   passed++;
 else failed++;
 
+
+if (
+  test('native V2 config uses canonical field and permission names', () => {
+    assert.ok(Array.isArray(config.skills), 'V2 skills must be an array');
+    assert.ok(config.commands && typeof config.commands === 'object', 'V2 commands map is required');
+    assert.ok(!Object.hasOwn(config, 'command'), 'Legacy command key must not remain');
+    assert.ok(Array.isArray(config.permissions), 'V2 permissions must be an array');
+    assert.ok(!Object.hasOwn(config, 'permission'), 'Legacy permission key must not remain');
+    assert.ok(!Object.hasOwn(config, 'plugins'), 'Auto-discovered plugins must not also be configured explicitly');
+
+    for (const [commandId, command] of Object.entries(config.commands)) {
+      assert.ok(!Object.hasOwn(command, 'subtask'), `Command "${commandId}" must use subagent, not subtask`);
+    }
+    const legacyActions = new Set(['bash', 'write', 'task', 'patch']);
+    for (const [agentId, agent] of Object.entries(config.agents || {})) {
+      for (const rule of agent.permissions || []) {
+        assert.ok(!legacyActions.has(rule.action), `Agent "${agentId}" contains legacy action "${rule.action}"`);
+      }
+    }
+  })
+) passed++; else failed++;
+
+if (
+  test('OpenCode v2 auto-discovery exposes exactly one direct plugin entrypoint', () => {
+    const pluginDir = path.join(opencodeDir, 'plugins');
+    const direct = fs.readdirSync(pluginDir, { withFileTypes: true })
+      .filter(entry => entry.isFile() && /\.(ts|js)$/.test(entry.name))
+      .map(entry => entry.name).sort();
+    assert.deepStrictEqual(direct, ['index.ts']);
+  })
+) passed++; else failed++;
+
 console.log(`\nPassed: ${passed}`);
 console.log(`Failed: ${failed}`);
 process.exit(failed > 0 ? 1 : 0);

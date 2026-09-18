@@ -75,9 +75,11 @@ function main() {
         path.join(repoRoot, ".opencode", "dist", "tools", "index.js"),
         "utf8"
       )
-      assert.match(emittedPluginIndex, /\.\/ecc-hooks\.js/)
+      assert.match(emittedPluginIndex, /\.\.\/plugin-support\/ecc-hooks\.js/)
+      assert.match(emittedPluginIndex, /\.\.\/plugin-support\/ecc-v2\.js/)
       assert.match(emittedToolIndex, /\.\/run-tests\.js/)
-      assert.doesNotMatch(emittedPluginIndex, /\.\/ecc-hooks\.ts/)
+      assert.doesNotMatch(emittedPluginIndex, /plugin-support\/ecc-hooks\.ts/)
+      assert.doesNotMatch(emittedPluginIndex, /plugin-support\/ecc-v2\.ts/)
       assert.doesNotMatch(emittedToolIndex, /\.\/run-tests\.ts/)
     }],
     ["built OpenCode entry exposes v2 setup and v1 server adapters", () => {
