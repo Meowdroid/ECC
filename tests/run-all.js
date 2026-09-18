@@ -12,6 +12,11 @@ const fs = require('fs');
 const testsDir = __dirname;
 const repoRoot = path.resolve(testsDir, '..');
 const TEST_GLOB = 'tests/**/*.test.js';
+const DEFAULT_TEST_TIMEOUT_MS = 120_000;
+const parsedTestTimeout = Number.parseInt(process.env.ECC_TEST_TIMEOUT_MS || "", 10);
+const TEST_TIMEOUT_MS = Number.isFinite(parsedTestTimeout) && parsedTestTimeout > 0
+  ? parsedTestTimeout
+  : DEFAULT_TEST_TIMEOUT_MS;
 
 function matchesTestGlob(relativePath) {
   const normalized = relativePath.split(path.sep).join('/');
@@ -100,7 +105,8 @@ for (const testFile of testFiles) {
   const result = spawnSync('node', [testPath], {
     encoding: 'utf8',
     stdio: ['pipe', 'pipe', 'pipe'],
-    env: childEnv
+    env: childEnv,
+    timeout: TEST_TIMEOUT_MS
   });
 
   const stdout = result.stdout || '';
@@ -121,7 +127,9 @@ for (const testFile of testFiles) {
   totalFailed += processFailed ? Math.max(reportedFailures, 1) : reportedFailures;
 
   let failureReason;
-  if (result.error) {
+  if (result.error?.code === 'ETIMEDOUT') {
+    failureReason = `timed out after ${TEST_TIMEOUT_MS} ms`;
+  } else if (result.error) {
     failureReason = `failed to start: ${result.error.message}`;
   } else if (result.status !== 0) {
     failureReason = result.signal
