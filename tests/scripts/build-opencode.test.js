@@ -74,10 +74,13 @@ function main() {
             process.exit(1)
           }
           assert.deepStrictEqual(Object.keys(mod).sort(), ["default"])
-          assert.strictEqual(typeof mod.default, "function")
+          assert.ok(mod.default && typeof mod.default === "object")
+          assert.strictEqual(mod.default.id, "ecc-universal")
+          assert.strictEqual(typeof mod.default.setup, "function")
+          assert.strictEqual(typeof mod.default.server, "function")
 
           let shellCalls = 0
-          const plugin = await mod.default({
+          const plugin = await mod.default.server({
             client: { app: { log: () => {} } },
             $: async () => {
               shellCalls += 1
@@ -86,8 +89,8 @@ function main() {
             directory: process.cwd(),
             worktree: process.cwd(),
           })
-          assert.strictEqual(shellCalls, 0, "$ must not be called during plugin init")
-          assert.ok(plugin && typeof plugin === "object", "default export must return a plugin record")
+          assert.strictEqual(shellCalls, 0, "$ must not be called during v1 plugin init")
+          assert.ok(plugin && typeof plugin === "object", "v1 server adapter must return a plugin record")
           const expectedHooks = [
             "file.edited",
             "tool.execute.after",
