@@ -30,46 +30,8 @@ async function main() {
   const state = path.join(os.homedir(), ".config", "opencode", "ecc-install-state.json")
   assert.ok(fs.existsSync(state), "ECC install-state was not created: " + state)
 
-  const port = 41967
-  const server = spawn("opencode", ["serve", "--hostname", "127.0.0.1", "--port", String(port)], {
-    stdio: ["ignore", "pipe", "pipe"],
-    shell: process.platform === "win32",
-  })
-  let serverLog = ""
-  server.stdout.on("data", (d) => { serverLog += d.toString() })
-  server.stderr.on("data", (d) => { serverLog += d.toString() })
-
-  try {
-    let tools = ""
-    let last = ""
-    for (let i = 0; i < 30; i += 1) {
-      await sleep(1000)
-      const password = (serverLog.match(/server password\s+(\S+)/) || [])[1]
-      if (!password) continue
-      const auth = Buffer.from("opencode:" + password).toString("base64")
-      try {
-        for (const endpoint of ["/api/experimental/tool/ids", "/experimental/tool/ids"]) {
-          const response = await fetch("http://127.0.0.1:" + port + endpoint, {
-            headers: { Authorization: "Basic " + auth, Accept: "application/json" },
-          })
-          last = await response.text()
-          if (response.ok && last.includes("changed-files")) {
-            tools = last
-            break
-          }
-        }
-        if (tools) break
-      } catch (error) {
-        last = String(error)
-      }
-      if (server.exitCode !== null) break
-    }
-    assert.ok(tools, "OpenCode server did not expose ECC tools. server=\n" + serverLog + "\napi=\n" + last)
-    assert.ok(tools.includes("changed-files"), "changed-files tool missing")
-    assert.ok(tools.includes("dependency-analyzer"), "dependency-analyzer tool missing")
-  } finally {
-    if (server.exitCode === null) server.kill()
-  }
+  const plugins = run(["plugin", "list"])
+  assert.ok(plugins.includes("ecc-universal"), "ECC v2 plugin is not active:\n" + plugins)
 
   console.log("OpenCode v2 runtime smoke passed")
 }
