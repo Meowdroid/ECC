@@ -34,14 +34,14 @@ if (
     assert.ok(!Object.hasOwn(config, 'small_model'), 'Root config must not pin a provider-specific small model');
 
     assert.ok(
-      config.agent &&
-        typeof config.agent === 'object' &&
-        !Array.isArray(config.agent) &&
-        Object.keys(config.agent).length > 0,
+      config.agents &&
+        typeof config.agents === 'object' &&
+        !Array.isArray(config.agents) &&
+        Object.keys(config.agents).length > 0,
       'Reference config must define registered agents'
     );
 
-    for (const [agentId, agent] of Object.entries(config.agent)) {
+    for (const [agentId, agent] of Object.entries(config.agents)) {
       assert.ok(!Object.hasOwn(agent, 'model'), `Agent "${agentId}" must inherit the selected OpenCode model`);
     }
   })
@@ -51,7 +51,7 @@ else failed++;
 
 if (
   test('plugin paths do not duplicate the .opencode directory', () => {
-    const plugins = config.plugin || [];
+    const plugins = config.plugins || [];
     for (const pluginPath of plugins) {
       assert.ok(!pluginPath.includes('.opencode/'), `Plugin path should be config-relative, got: ${pluginPath}`);
       assert.ok(fs.existsSync(path.resolve(opencodeDir, pluginPath)), `Plugin path should resolve from .opencode/: ${pluginPath}`);
@@ -100,7 +100,7 @@ else failed++;
 if (
   test('command markdown frontmatter agent ids resolve to a registered opencode agent', () => {
     const commandsDir = path.join(opencodeDir, 'commands');
-    const registeredAgents = new Set(Object.keys(config.agent || {}));
+    const registeredAgents = new Set(Object.keys(config.agents || {}));
     assert.ok(registeredAgents.size > 0, 'Expected opencode.json to register at least one agent');
 
     for (const entry of fs.readdirSync(commandsDir)) {
@@ -118,7 +118,7 @@ if (
       const agentId = match[1].trim().replace(/^['"]|['"]$/g, '');
 
       // Regression guard for #2477: opencode registers these agents unscoped
-      // in opencode.json's `agent` map, so ANY namespace-scoped id
+      // in opencode.json's `agents` map, so ANY namespace-scoped id
       // (`<plugin>:<agent>` — e.g. the Claude Code `everything-claude-code:`
       // prefix) fails to resolve ("Agent not found") and hard-breaks subtask
       // commands like /code-review on opencode. Reject the whole scoped class,
@@ -130,7 +130,7 @@ if (
 
       assert.ok(
         registeredAgents.has(agentId),
-        `${entry}: command agent "${agentId}" is not registered in opencode.json's agent map`
+        `${entry}: command agent "${agentId}" is not registered in opencode.json's agents map`
       );
     }
   })
