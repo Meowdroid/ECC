@@ -1,0 +1,59 @@
+name: OpenCode v2 compatibility
+
+on:
+  push:
+    branches:
+      - fix/opencode-v2-plugin-compat
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  opencode-compat:
+    name: OpenCode compatibility
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [20, 22]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+      - name: Build OpenCode adapter
+        run: npm run build:opencode
+      - name: OpenCode adapter regression tests
+        run: node tests/scripts/build-opencode.test.js
+      - name: Validate agents
+        run: node scripts/ci/validate-agents.js
+      - name: Validate commands
+        run: node scripts/ci/validate-commands.js
+      - name: Validate install manifests
+        run: node scripts/ci/validate-install-manifests.js
+      - name: Package smoke test
+        run: npm pack --dry-run --json
+
+  full-tests:
+    name: Full ECC tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+      - name: Build OpenCode adapter
+        run: npm run build:opencode
+      - name: Full test suite
+        run: npm test
