@@ -52,7 +52,7 @@ function main() {
           }
           if (!entry.name.endsWith(".ts")) continue
           const source = fs.readFileSync(full, "utf8")
-          if (new RegExp("from\\s+[\\"\'][.]{1,2}\\/[^\\"\']+\\.js[\\"\']|import\\([\\"\'][.]{1,2}\\/[^\\"\']+\\.js[\\"\']\\)").test(source)) {
+          if (new RegExp(String.raw`from\\s+["\'][.]{1,2}/[^"\']+\\.js["\']|import\\(["\'][.]{1,2}/[^"\']+\\.js["\']\\)`).test(source)) {
             offenders.push(path.relative(repoRoot, full))
           }
         }
