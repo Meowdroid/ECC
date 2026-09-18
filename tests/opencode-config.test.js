@@ -141,7 +141,7 @@ else failed++;
 
 if (
   test('native V2 config uses canonical field and permission names', () => {
-    assert.ok(Array.isArray(config.skills), 'V2 skills must be an array');
+    assert.ok(!Object.hasOwn(config, 'skills') || Array.isArray(config.skills), 'V2 skills must be an array when explicitly configured');
     assert.ok(config.commands && typeof config.commands === 'object', 'V2 commands map is required');
     assert.ok(!Object.hasOwn(config, 'command'), 'Legacy command key must not remain');
     assert.ok(Array.isArray(config.permissions), 'V2 permissions must be an array');

@@ -17,9 +17,6 @@
     "skills/strategic-compact/SKILL.md",
     "skills/eval-harness/SKILL.md"
   ],
-  "skills": [
-    "../skills"
-  ],
   "agents": {
     "build": {
       "description": "Primary coding agent for development work",
