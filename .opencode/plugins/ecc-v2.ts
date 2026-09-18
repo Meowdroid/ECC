@@ -60,6 +60,7 @@ const ECCV2Plugin = {
       !disabled.has(id) && profileOrder[profile] >= profileOrder[required]
 
     changedFilesStore.initStore(directory)
+    const pendingWrites = new Map<string, "added" | "modified">()
 
     registrations.push(
       await ctx.tool.hook("execute.before", (event: any) => {
@@ -67,7 +68,7 @@ const ECCV2Plugin = {
         const filePath = getFilePath(event.input)
         if (!filePath) return
         const absolute = path.isAbsolute(filePath) ? filePath : path.join(directory, filePath)
-        changedFilesStore.recordChange(filePath, fs.existsSync(absolute) ? "modified" : "added")
+        pendingWrites.set(filePath, fs.existsSync(absolute) ? "modified" : "added")
       })
     )
 
@@ -78,8 +79,11 @@ const ECCV2Plugin = {
           changedFilesStore.recordChange(filePath, "modified")
         }
         if (event.tool === "write" && filePath) {
-          const existing = changedFilesStore.getChanges().get(filePath)
-          if (existing !== "added") changedFilesStore.recordChange(filePath, "modified")
+          const pending = pendingWrites.get(filePath)
+          pendingWrites.delete(filePath)
+          if (event.status === "completed" && pending) {
+            changedFilesStore.recordChange(filePath, pending)
+          }
         }
 
         if (
@@ -196,6 +200,7 @@ const ECCV2Plugin = {
       for (const registration of registrations.reverse()) {
         await registration.dispose()
       }
+      pendingWrites.clear()
       changedFilesStore.clearChanges()
     }
   },
