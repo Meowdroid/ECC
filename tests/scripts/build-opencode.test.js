@@ -37,6 +37,8 @@ function main() {
       assert.strictEqual(packageJson.scripts["build:opencode"], "node scripts/build-opencode.js")
       assert.strictEqual(packageJson.scripts.prepack, "npm run build:opencode")
       assert.ok(packageJson.files.includes(".opencode/"))
+      assert.strictEqual(packageJson.main, ".opencode/dist/index.js")
+      assert.strictEqual(packageJson.exports["."].import, "./.opencode/dist/index.js")
     }],
     ["build script generates .opencode/dist", () => {
       const result = spawnSync("node", [buildScript], {
@@ -45,6 +47,18 @@ function main() {
       })
       assert.strictEqual(result.status, 0, result.stderr)
       assert.ok(fs.existsSync(distEntry), ".opencode/dist/index.js should exist after build")
+      const emittedPluginIndex = fs.readFileSync(
+        path.join(repoRoot, ".opencode", "dist", "plugins", "index.js"),
+        "utf8"
+      )
+      const emittedToolIndex = fs.readFileSync(
+        path.join(repoRoot, ".opencode", "dist", "tools", "index.js"),
+        "utf8"
+      )
+      assert.match(emittedPluginIndex, /\.\/ecc-hooks\.js/)
+      assert.match(emittedToolIndex, /\.\/run-tests\.js/)
+      assert.doesNotMatch(emittedPluginIndex, /\.\/ecc-hooks\.ts/)
+      assert.doesNotMatch(emittedToolIndex, /\.\/run-tests\.ts/)
     }],
     ["built OpenCode entry exports only the plugin function", () => {
       const check = `
