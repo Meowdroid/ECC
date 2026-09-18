@@ -194,6 +194,25 @@ function main() {
       })
       assert.strictEqual(result.status, 0, result.stderr)
     }],
+    ["root package name resolves to the compiled OpenCode plugin", () => {
+      const check = `
+        import("ecc-universal")
+          .then((mod) => {
+            if (!mod.default || mod.default.id !== "ecc-universal" || typeof mod.default.setup !== "function") {
+              process.exit(2)
+            }
+          })
+          .catch((error) => {
+            console.error(error)
+            process.exit(1)
+          })
+      `
+      const result = spawnSync(process.execPath, ["-e", check], {
+        cwd: repoRoot,
+        encoding: "utf8",
+      })
+      assert.strictEqual(result.status, 0, result.stderr)
+    }],
     ["npm pack includes the compiled OpenCode dist payload", () => {
       const result = spawnSync("npm", ["pack", "--dry-run", "--json"], {
         cwd: repoRoot,
