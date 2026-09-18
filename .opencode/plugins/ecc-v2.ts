@@ -74,8 +74,12 @@ const ECCV2Plugin = {
     registrations.push(
       await ctx.tool.hook("execute.after", async (event: any) => {
         const filePath = getFilePath(event.input)
-        if ((event.tool === "edit" || event.tool === "write") && filePath) {
+        if (event.tool === "edit" && filePath) {
           changedFilesStore.recordChange(filePath, "modified")
+        }
+        if (event.tool === "write" && filePath) {
+          const existing = changedFilesStore.getChanges().get(filePath)
+          if (existing !== "added") changedFilesStore.recordChange(filePath, "modified")
         }
 
         if (
