@@ -41,6 +41,16 @@ jobs:
         run: node scripts/ci/validate-install-manifests.js
       - name: Package smoke test
         run: npm pack --dry-run --json
+      - name: Install OpenCode v2 CLI
+        run: npm install --global @opencode/cli@2.0.2
+      - name: Install ECC into isolated runner home
+        run: node scripts/install-apply.js --target opencode --profile full
+      - name: OpenCode runtime config smoke
+        run: opencode debug config
+      - name: OpenCode runtime agents smoke
+        run: opencode debug agents
+      - name: OpenCode runtime plugin smoke
+        run: opencode plugin list
 
   full-tests:
     name: Full ECC tests
