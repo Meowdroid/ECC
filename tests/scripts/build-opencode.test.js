@@ -40,6 +40,26 @@ function main() {
       assert.strictEqual(packageJson.main, ".opencode/dist/index.js")
       assert.strictEqual(packageJson.exports["."].import, "./.opencode/dist/index.js")
     }],
+    ["installed OpenCode TypeScript sources do not reference sibling .js files", () => {
+      const sourceRoot = path.join(repoRoot, ".opencode")
+      const offenders = []
+      const visit = (dir) => {
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+          const full = path.join(dir, entry.name)
+          if (entry.isDirectory()) {
+            if (entry.name !== "dist" && entry.name !== "node_modules") visit(full)
+            continue
+          }
+          if (!entry.name.endsWith(".ts")) continue
+          const source = fs.readFileSync(full, "utf8")
+          if (/from\\s+["'][.]{1,2}\\/[^"']+\\.js["']|import\\(["'][.]{1,2}\\/[^"']+\\.js["']\\)/.test(source)) {
+            offenders.push(path.relative(repoRoot, full))
+          }
+        }
+      }
+      visit(sourceRoot)
+      assert.deepStrictEqual(offenders, [], "relative .js imports break in-place TypeScript installs")
+    }],
     ["build script generates .opencode/dist", () => {
       const result = spawnSync("node", [buildScript], {
         cwd: repoRoot,
@@ -60,7 +80,7 @@ function main() {
       assert.doesNotMatch(emittedPluginIndex, /\.\/ecc-hooks\.ts/)
       assert.doesNotMatch(emittedToolIndex, /\.\/run-tests\.ts/)
     }],
-    ["built OpenCode entry exports only the plugin function", () => {
+    ["built OpenCode entry exposes v2 setup and v1 server adapters", () => {
       const check = `
         const assert = require("assert")
         const { pathToFileURL } = require("url")
