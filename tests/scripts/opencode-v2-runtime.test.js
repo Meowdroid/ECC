@@ -48,14 +48,17 @@ async function main() {
       if (!password) continue
       const auth = Buffer.from("opencode:" + password).toString("base64")
       try {
-        const response = await fetch("http://127.0.0.1:" + port + "/experimental/tool/ids", {
-          headers: { Authorization: "Basic " + auth },
-        })
-        last = await response.text()
-        if (response.ok && last.includes("changed-files")) {
-          tools = last
-          break
+        for (const endpoint of ["/api/experimental/tool/ids", "/experimental/tool/ids"]) {
+          const response = await fetch("http://127.0.0.1:" + port + endpoint, {
+            headers: { Authorization: "Basic " + auth, Accept: "application/json" },
+          })
+          last = await response.text()
+          if (response.ok && last.includes("changed-files")) {
+            tools = last
+            break
+          }
         }
+        if (tools) break
       } catch (error) {
         last = String(error)
       }
