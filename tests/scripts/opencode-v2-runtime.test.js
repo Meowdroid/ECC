@@ -44,7 +44,9 @@ async function main() {
     let last = ""
     for (let i = 0; i < 30; i += 1) {
       await sleep(1000)
-      const r = spawnSync("opencode", ["api", "--server", "http://127.0.0.1:" + port, "GET", "/experimental/tool/ids"], {
+      const password = (serverLog.match(/server password\s+(\S+)/) || [])[1]
+      if (!password) continue
+      const r = spawnSync("opencode", ["api", "--server", "http://127.0.0.1:" + port, "--username", "opencode", "--password", password, "GET", "/experimental/tool/ids"], {
         encoding: "utf8",
         shell: process.platform === "win32",
       })
