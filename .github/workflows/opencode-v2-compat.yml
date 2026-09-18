@@ -44,7 +44,7 @@ jobs:
       - name: Install OpenCode v2 CLI
         run: npm install --global @opencode/cli@2.0.2
       - name: Install ECC into isolated runner home
-        run: node scripts/install-apply.js --target opencode --profile full
+        run: node scripts/install-apply.js --target opencode --profile full --enable-hooks
       - name: OpenCode runtime config smoke
         run: opencode debug config
       - name: OpenCode runtime agents smoke
