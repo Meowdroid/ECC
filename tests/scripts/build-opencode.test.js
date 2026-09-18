@@ -79,6 +79,47 @@ function main() {
           assert.strictEqual(typeof mod.default.setup, "function")
           assert.strictEqual(typeof mod.default.server, "function")
 
+          const registered = { toolHooks: [], shellHooks: [], permissionHooks: [], sessionHooks: [], tools: [] }
+          const registration = () => ({ dispose: async () => {} })
+          const cleanup = await mod.default.setup({
+            location: { directory: process.cwd() },
+            tool: {
+              hook: async (name, callback) => {
+                registered.toolHooks.push(name)
+                return registration()
+              },
+              transform: async (callback) => {
+                callback({ add: (definition) => registered.tools.push(definition.name) })
+                return registration()
+              },
+            },
+            shell: {
+              hook: async (name, callback) => {
+                registered.shellHooks.push(name)
+                return registration()
+              },
+            },
+            permission: {
+              hook: async (name, callback) => {
+                registered.permissionHooks.push(name)
+                return registration()
+              },
+            },
+            session: {
+              hook: async (name, callback) => {
+                registered.sessionHooks.push(name)
+                return registration()
+              },
+            },
+          })
+          assert.deepStrictEqual(registered.toolHooks.sort(), ["execute.after", "execute.before"])
+          assert.deepStrictEqual(registered.shellHooks, ["create.before"])
+          assert.deepStrictEqual(registered.permissionHooks, ["evaluate"])
+          assert.deepStrictEqual(registered.sessionHooks, ["compaction"])
+          assert.deepStrictEqual(registered.tools.sort(), ["changed-files", "dependency-analyzer"])
+          assert.strictEqual(typeof cleanup, "function")
+          await cleanup()
+
           let shellCalls = 0
           const plugin = await mod.default.server({
             client: { app: { log: () => {} } },
