@@ -3,7 +3,7 @@ name: OpenCode v2 compatibility
 on:
   push:
     branches:
-      - fix/opencode-v2-plugin-compat
+      - main
   pull_request:
     branches:
       - main
