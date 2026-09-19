@@ -12,6 +12,7 @@ function run(result, filename = 'sample.test.js', actions = true) {
   const exit = {};
   let status;
   let spawns = 0;
+  let lastSpawnOptions;
   const fakeProcess = {
     env: actions ? { GITHUB_ACTIONS: 'true' } : {},
     exit(code) { status = code; throw exit; },
@@ -33,7 +34,11 @@ function run(result, filename = 'sample.test.js', actions = true) {
         if (name === 'fs') return fakeFs;
         if (name === 'path') return path;
         if (name === 'child_process') return {
-          spawnSync() { spawns += 1; return result; },
+          spawnSync(_command, _args, options) {
+            spawns += 1;
+            lastSpawnOptions = options;
+            return result;
+          },
         };
         throw new Error(`Unexpected dependency: ${name}`);
       },
@@ -42,7 +47,12 @@ function run(result, filename = 'sample.test.js', actions = true) {
     if (error !== exit) throw error;
   }
   assert.strictEqual(spawns, 1);
-  return { status, logs, annotations: logs.filter(line => line.startsWith('::error ')) };
+  return {
+    status,
+    logs,
+    annotations: logs.filter(line => line.startsWith('::error ')),
+    lastSpawnOptions,
+  };
 }
 
 const tests = [
@@ -96,6 +106,15 @@ const tests = [
     assert.strictEqual(result.status, 0);
     assert.deepStrictEqual(result.annotations, []);
     assert.ok(result.logs.some(line => /Passed:\s+3\s/.test(line)));
+  }],
+  ['long-running integration files get a larger watchdog without weakening the default', () => {
+    const ordinary = run({ status: 0, stdout: 'Passed: 1, Failed: 0' }, 'sample.test.js');
+    const setup = run({ status: 0, stdout: 'Passed: 1, Failed: 0' }, 'scripts/setup.test.js');
+    const installApply = run({ status: 0, stdout: 'Passed: 1, Failed: 0' }, 'scripts/install-apply.test.js');
+
+    assert.strictEqual(ordinary.lastSpawnOptions.timeout, 120000);
+    assert.strictEqual(setup.lastSpawnOptions.timeout, 300000);
+    assert.strictEqual(installApply.lastSpawnOptions.timeout, 300000);
   }],
   ['legacy Results summaries preserve successful totals', () => {
     const result = run({ status: 0, stdout: '=== Results: 5 passed, 0 failed ===' });

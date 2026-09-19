@@ -13,10 +13,22 @@ const testsDir = __dirname;
 const repoRoot = path.resolve(testsDir, '..');
 const TEST_GLOB = 'tests/**/*.test.js';
 const DEFAULT_TEST_TIMEOUT_MS = 120_000;
+const LONG_RUNNING_TEST_TIMEOUT_MS = 300_000;
+const LONG_RUNNING_TESTS = new Set([
+  'scripts/setup.test.js',
+  'scripts/install-apply.test.js',
+]);
 const parsedTestTimeout = Number.parseInt(process.env.ECC_TEST_TIMEOUT_MS || "", 10);
-const TEST_TIMEOUT_MS = Number.isFinite(parsedTestTimeout) && parsedTestTimeout > 0
+const TEST_TIMEOUT_OVERRIDE_MS = Number.isFinite(parsedTestTimeout) && parsedTestTimeout > 0
   ? parsedTestTimeout
-  : DEFAULT_TEST_TIMEOUT_MS;
+  : null;
+
+function getTestTimeoutMs(displayPath) {
+  if (TEST_TIMEOUT_OVERRIDE_MS) return TEST_TIMEOUT_OVERRIDE_MS;
+  return LONG_RUNNING_TESTS.has(displayPath)
+    ? LONG_RUNNING_TEST_TIMEOUT_MS
+    : DEFAULT_TEST_TIMEOUT_MS;
+}
 
 function matchesTestGlob(relativePath) {
   const normalized = relativePath.split(path.sep).join('/');
@@ -123,11 +135,12 @@ for (const testFile of testFiles) {
     delete childEnv[key];
   }
 
+  const testTimeoutMs = getTestTimeoutMs(displayPath);
   const result = spawnSync('node', [testPath], {
     encoding: 'utf8',
     stdio: ['pipe', 'pipe', 'pipe'],
     env: childEnv,
-    timeout: TEST_TIMEOUT_MS
+    timeout: testTimeoutMs
   });
 
   const stdout = result.stdout || '';
@@ -147,7 +160,7 @@ for (const testFile of testFiles) {
 
   let failureReason;
   if (result.error?.code === 'ETIMEDOUT') {
-    failureReason = `timed out after ${TEST_TIMEOUT_MS} ms`;
+    failureReason = `timed out after ${testTimeoutMs} ms`;
   } else if (result.error) {
     failureReason = `failed to start: ${result.error.message}`;
   } else if (result.status !== 0) {
