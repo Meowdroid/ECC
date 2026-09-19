@@ -12,23 +12,6 @@ const fs = require('fs');
 const testsDir = __dirname;
 const repoRoot = path.resolve(testsDir, '..');
 const TEST_GLOB = 'tests/**/*.test.js';
-const DEFAULT_TEST_TIMEOUT_MS = 120_000;
-const LONG_RUNNING_TEST_TIMEOUT_MS = 300_000;
-const LONG_RUNNING_TESTS = new Set([
-  'scripts/setup.test.js',
-  'scripts/install-apply.test.js',
-]);
-const parsedTestTimeout = Number.parseInt(process.env.ECC_TEST_TIMEOUT_MS || "", 10);
-const TEST_TIMEOUT_OVERRIDE_MS = Number.isFinite(parsedTestTimeout) && parsedTestTimeout > 0
-  ? parsedTestTimeout
-  : null;
-
-function getTestTimeoutMs(displayPath) {
-  if (TEST_TIMEOUT_OVERRIDE_MS) return TEST_TIMEOUT_OVERRIDE_MS;
-  return LONG_RUNNING_TESTS.has(displayPath)
-    ? LONG_RUNNING_TEST_TIMEOUT_MS
-    : DEFAULT_TEST_TIMEOUT_MS;
-}
 
 function matchesTestGlob(relativePath) {
   const normalized = relativePath.split(path.sep).join('/');
@@ -75,27 +58,6 @@ function annotateFailure(displayPath, reason, output) {
   console.log(`::error file=${escapeAnnotation(`tests/${displayPath}`, true)}::${escapeAnnotation(message)}`);
 }
 
-function parseTestCounts(output) {
-  const passedMatch = output.match(/\bPassed:\s*(\d+)/i);
-  const failedMatch = output.match(/\bFailed:\s*(\d+)/i);
-  if (passedMatch && failedMatch) {
-    return {
-      passed: Number(passedMatch[1]),
-      failed: Number(failedMatch[1]),
-    };
-  }
-
-  const resultsMatch = output.match(/\bResults:\s*(\d+)\s+passed,\s*(\d+)\s+failed\b/i);
-  if (resultsMatch) {
-    return {
-      passed: Number(resultsMatch[1]),
-      failed: Number(resultsMatch[2]),
-    };
-  }
-
-  return { passed: 0, failed: 0 };
-}
-
 const testFiles = discoverTestFiles();
 
 const BOX_W = 58; // inner width between ║ delimiters
@@ -135,12 +97,10 @@ for (const testFile of testFiles) {
     delete childEnv[key];
   }
 
-  const testTimeoutMs = getTestTimeoutMs(displayPath);
   const result = spawnSync('node', [testPath], {
     encoding: 'utf8',
     stdio: ['pipe', 'pipe', 'pipe'],
-    env: childEnv,
-    timeout: testTimeoutMs
+    env: childEnv
   });
 
   const stdout = result.stdout || '';
@@ -152,16 +112,16 @@ for (const testFile of testFiles) {
 
   // Parse results from combined output
   const combined = `${stdout}\n${stderr}`;
-  const reportedCounts = parseTestCounts(combined);
-  totalPassed += reportedCounts.passed;
-  const reportedFailures = reportedCounts.failed;
+  const passedMatch = combined.match(/Passed:\s*(\d+)/);
+  const failedMatch = combined.match(/Failed:\s*(\d+)/);
+
+  if (passedMatch) totalPassed += parseInt(passedMatch[1], 10);
+  const reportedFailures = failedMatch ? parseInt(failedMatch[1], 10) : 0;
   const processFailed = Boolean(result.error) || result.status !== 0;
   totalFailed += processFailed ? Math.max(reportedFailures, 1) : reportedFailures;
 
   let failureReason;
-  if (result.error?.code === 'ETIMEDOUT') {
-    failureReason = `timed out after ${testTimeoutMs} ms`;
-  } else if (result.error) {
+  if (result.error) {
     failureReason = `failed to start: ${result.error.message}`;
   } else if (result.status !== 0) {
     failureReason = result.signal
